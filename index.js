@@ -1,12 +1,11 @@
-require("dotenv").config({path:".env"});
+require("dotenv").config({ path: ".env" });
 
-
-const { Sequelize} = require("sequelize");
+const { Sequelize } = require("sequelize");
 
 const user = process.env.user;
 const host = process.env.host;
 const database = process.env.database;
-const password = process.env.PASSWORD; 
+const password = process.env.password;
 const port = process.env.post;
 
 //connecting the database
@@ -27,4 +26,3 @@ const dbAuth = async () => {
 };
 
 dbAuth();
-
