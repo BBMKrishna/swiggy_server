@@ -1,15 +1,13 @@
-require("dotenv").config({ path: "../.env" });
-const express = require("express");
-const bodyParser = require("body-parser");
-const app = express();
+require("dotenv").config({path:".env"});
 
-const { Sequelize, Model, DataTypes, Op, INTEGER } = require("sequelize");
 
-const user = "swiggy";
-const host = "127.0.0.1";
-const database = "swiggy";
+const { Sequelize} = require("sequelize");
+
+const user = process.env.user;
+const host = process.env.host;
+const database = process.env.database;
 const password = process.env.PASSWORD; 
-const port = "5432";
+const port = process.env.post;
 
 //connecting the database
 const sequelize = new Sequelize(database, user, password, {
@@ -30,6 +28,3 @@ const dbAuth = async () => {
 
 dbAuth();
 
-app.listen(3000, function (req, res) {
-  console.log("currently its running on 3000");
-});
