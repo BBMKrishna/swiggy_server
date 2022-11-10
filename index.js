@@ -1,12 +1,11 @@
-require("dotenv").config({path:".env"});
+require("dotenv").config({ path: ".env" });
 
-
-const { Sequelize, Model, DataTypes} = require("sequelize");
+const { Sequelize, Model, DataTypes } = require("sequelize");
 
 const user = process.env.user;
 const host = process.env.host;
 const database = process.env.database;
-const password = process.env.PASSWORD; 
+const password = process.env.PASSWORD;
 const port = process.env.post;
 
 //connecting the database
@@ -17,34 +16,35 @@ const sequelize = new Sequelize(database, user, password, {
 });
 
 //restaurants schema
-class Restaurant extends Model{}
+class Restaurant extends Model {}
 
-Restaurant.init({
-  name:{
-    type: DataTypes.STRING,
-    allowNull:false,
+Restaurant.init(
+  {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    city: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
   },
-  address:{
-    type:DataTypes.STRING,
-    allowNull:false
-  }
-  ,
-  city:{
-    type: DataTypes.STRING,
-    allowNull:false
-  }
-},{sequelize})
+  { sequelize }
+);
 
 //db synchronization
 
 const dbsync = async () => {
-  try{
-    await Restaurant.sync({alter:true})
+  try {
+    await Restaurant.sync({ alter: true });
   } catch (error) {
-    console.error("Unable to connect to the database:", error);
+    console.error("Failed to sync", error);
   }
-
-}
+};
 
 dbsync();
 
@@ -59,4 +59,3 @@ const dbAuth = async () => {
 };
 
 dbAuth();
-
