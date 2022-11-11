@@ -5,6 +5,8 @@ const host = process.env.host;
 const database = process.env.database;
 const password = process.env.password;
 const port = process.env.post;
+const express = require("express");
+const app = express();
 
 //connecting the database
 const sequelize = new Sequelize(database, user, password, {
@@ -35,7 +37,6 @@ Restaurant.init(
 );
 
 //db synchronization
-
 const dbsync = async () => {
   try {
     await Restaurant.sync({ alter: true });
@@ -57,3 +58,9 @@ const dbAuth = async () => {
 };
 
 dbAuth();
+
+app.listen(3000,function (req,res){
+  console.log("server is running at port 3000")
+})
+
+
