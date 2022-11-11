@@ -1,7 +1,5 @@
 require("dotenv").config({ path: ".env" });
-
-const { Sequelize } = require("sequelize");
-
+const { Sequelize, Model, DataTypes } = require("sequelize");
 const user = process.env.user;
 const host = process.env.host;
 const database = process.env.database;
@@ -14,6 +12,39 @@ const sequelize = new Sequelize(database, user, password, {
   dialect: "postgres",
   logging: false,
 });
+
+//restaurants schema
+class Restaurant extends Model {}
+
+Restaurant.init(
+  {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    address: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    city: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+  },
+  { sequelize, modelName: "swiggy" }
+);
+
+//db synchronization
+
+const dbsync = async () => {
+  try {
+    await Restaurant.sync({ alter: true });
+  } catch (error) {
+    console.error("Failed to sync", error);
+  }
+};
+
+dbsync();
 
 //testing the db connection
 const dbAuth = async () => {
