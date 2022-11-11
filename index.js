@@ -1,7 +1,5 @@
 require("dotenv").config({ path: ".env" });
-
 const { Sequelize, Model, DataTypes } = require("sequelize");
-
 const user = process.env.user;
 const host = process.env.host;
 const database = process.env.database;
