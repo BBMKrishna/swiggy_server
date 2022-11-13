@@ -7,6 +7,8 @@ const password = process.env.password;
 const port = process.env.post;
 const express = require("express");
 const app = express();
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //connecting the database
 const sequelize = new Sequelize(database, user, password, {
@@ -59,8 +61,37 @@ const dbAuth = async () => {
 
 dbAuth();
 
-app.listen(3000,function (req,res){
-  console.log("server is running at port 3000")
-})
+// restaurant routes
+app
+  .route("/restaurant")
+  .post(function (req, res) {
+    const { rName, rAddress, rCity } = req.body;
+    Restaurant.create({
+      name: rName,
+      address: rAddress,
+      city: rCity,
+    });
+    res.redirect("/restaurant");
+  })
+  .get(function (req, res) {
+    const searchRestaurant = async () => {
+      const restaurants = await Restaurant.findAll();
+      res.json(restaurants);
+    };
+    searchRestaurant();
+  })
+  .delete(function (req, res) {
+    const delRestaurant = async () => {
+      Restaurant.destroy({
+        where: {
+          id: req.body.id,
+        },
+      });
+    };
+    delRestaurant();
+  });
 
-
+//express setup at port 3000
+app.listen(3000, function (req, res) {
+  console.log("server is running at port 3000");
+});
