@@ -83,14 +83,15 @@ app.delete("/restaurants", function (req, res) {
       id: req.body.id,
     },
   })
-    .then((data) => res.json(data))
-    .then(
+    .then((data) => {
       Restaurant.destroy({
         where: {
           id: req.body.id,
         },
       })
-    )
+        .then(res.json(data))
+        .catch((err) => res.json(err));
+    })
     .catch((err) => res.json(err));
 });
 
