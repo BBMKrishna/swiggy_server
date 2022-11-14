@@ -62,34 +62,37 @@ const dbAuth = async () => {
 dbAuth();
 
 // restaurant routes
-app
-  .route("/restaurant")
-  .post(function (req, res) {
-    const { rName, rAddress, rCity } = req.body;
-    Restaurant.create({
-      name: rName,
-      address: rAddress,
-      city: rCity,
-    });
-    res.redirect("/restaurant");
+app.post("/restaurants", function (req, res) {
+  const { name, address, city } = req.body;
+  const restaurant = {
+    name: name,
+    address: address,
+    city: city,
+  };
+  Restaurant.create(restaurant)
+    .then((data) => res.json(data))
+    .catch((error) => console.error("Failed to create a record", error));
+});
+
+app.get("/restaurants", function (req, res) {
+  Restaurant.findAll().then((restaurants) => res.json(restaurants));
+});
+app.delete("/restaurants", function (req, res) {
+  Restaurant.findOne({
+    where: {
+      id: req.body.id,
+    },
   })
-  .get(function (req, res) {
-    const searchRestaurant = async () => {
-      const restaurants = await Restaurant.findAll();
-      res.json(restaurants);
-    };
-    searchRestaurant();
-  })
-  .delete(function (req, res) {
-    const delRestaurant = async () => {
+    .then((data) => res.json(data))
+    .then(
       Restaurant.destroy({
         where: {
           id: req.body.id,
         },
-      });
-    };
-    delRestaurant();
-  });
+      })
+    )
+    .catch((err) => res.json(err));
+});
 
 //express setup at port 3000
 app.listen(3000, function (req, res) {
