@@ -8,7 +8,6 @@ const port = process.env.post;
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-// const { defaultValueSchemable } = require("sequelize/types/utils");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //connecting the database
