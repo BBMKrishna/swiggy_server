@@ -8,6 +8,7 @@ const port = process.env.post;
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
+// const { defaultValueSchemable } = require("sequelize/types/utils");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 //connecting the database
@@ -35,7 +36,7 @@ Restaurant.init(
       allowNull: false,
     },
   },
-  { sequelize, modelName: "swiggy" }
+  { sequelize }
 );
 
 //db synchronization
@@ -89,12 +90,77 @@ app.delete("/restaurants", function (req, res) {
           id: req.body.id,
         },
       })
-        .then(res.json(data))
+        .then(res.json(`deleted the below record successfully ${data}`))
         .catch((err) => res.json(err));
     })
     .catch((err) => res.json(err));
 });
 
+class Dish extends Model {}
+
+Dish.init(
+  {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    price: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nonVeg: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+  },
+  { sequelize }
+);
+
+Restaurant.hasMany(Dish, { foreignKey: { allowNull: false } });
+Dish.belongsTo(Restaurant);
+
+const dishDbSync = async () => {
+  try {
+    await Dish.sync({ alter: true });
+  } catch (error) {
+    console.error("Failed to sync", error);
+  }
+};
+
+dishDbSync();
+
+app.get("/dishes", function (req, res) {
+  Dish.findAll().then((data) => res.json(data));
+});
+
+app.post("/dishes", function (req, res) {
+  const { name, price, nonVeg, restaurantId } = req.body;
+  Dish.create({
+    name: name,
+    price: price,
+    nonVeg: nonVeg,
+    RestaurantId: restaurantId,
+  })
+    .then((data) => res.json(data))
+    .catch((err) => res.json(err));
+});
+app.delete("/dishes", function (req, res) {
+  Dish.findOne({
+    where: {
+      id: req.body.id,
+    },
+  })
+    .then((data) => {
+      Dish.destroy({
+        where: {
+          id: req.body.id,
+        },
+      })
+        .then(res.json(data))
+        .catch((err) => res.json(err));
+    })
+    .catch((err) => res.json(err));
+});
 //express setup at port 3000
 app.listen(3000, function (req, res) {
   console.log("server is running at port 3000");
