@@ -5,11 +5,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const Restaurant = require("./Models/restaurant.js");
 const Dish = require("./Models/dish.js");
+const User = require("./Models/user.js");
 
 // restaurant routes
 app.post("/restaurants", function (req, res) {
-  const restaurant = req.body;
-  Restaurant.create(restaurant)
+  Restaurant.create(req.body)
     .then((data) => res.json(data))
     .catch((error) => console.error("Failed to create a record", error));
 });
@@ -55,6 +55,16 @@ app.delete("/dishes", function (req, res) {
         },
       }).then(() => data);
     })
+    .then((data) => res.json(data))
+    .catch((err) => res.json(err));
+});
+
+app.get("/users", function (req, res) {
+  User.findAll().then((data) => res.json(data));
+});
+
+app.post("/users", function (req, res) {
+  User.create(req.body)
     .then((data) => res.json(data))
     .catch((err) => res.json(err));
 });

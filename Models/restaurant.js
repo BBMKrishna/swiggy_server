@@ -25,7 +25,7 @@ const dbsync = async () => {
   try {
     await Restaurant.sync({ alter: true });
   } catch (error) {
-    console.error("Failed to sync", error);
+    console.error("Failed to sync - Restaurant", error);
   }
 };
 
