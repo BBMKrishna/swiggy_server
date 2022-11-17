@@ -1,44 +1,12 @@
-require("dotenv").config({ path: ".env" });
-const { Sequelize, Model, DataTypes } = require("sequelize");
-const user = process.env.user;
-const host = process.env.host;
-const database = process.env.database;
-const password = process.env.password;
-const port = process.env.post;
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//connecting the database
-const sequelize = new Sequelize(database, user, password, {
-  host: host,
-  dialect: "postgres",
-  logging: false,
-});
+const Restaurant = require("./Models/restaurant.js");
+const Dish = require("./Models/dish.js");
+const sequelize = require("./sequelize.js");
 
-//restaurants schema
-class Restaurant extends Model {}
-
-Restaurant.init(
-  {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    address: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    city: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  { sequelize }
-);
-
-//db synchronization
 const dbsync = async () => {
   try {
     await Restaurant.sync({ alter: true });
@@ -63,12 +31,7 @@ dbAuth();
 
 // restaurant routes
 app.post("/restaurants", function (req, res) {
-  const { name, address, city } = req.body;
-  const restaurant = {
-    name: name,
-    address: address,
-    city: city,
-  };
+  const restaurant = req.body;
   Restaurant.create(restaurant)
     .then((data) => res.json(data))
     .catch((error) => console.error("Failed to create a record", error));
@@ -88,35 +51,15 @@ app.delete("/restaurants", function (req, res) {
         where: {
           id: req.body.id,
         },
-      })
-        .then(res.json(`deleted the below record successfully ${data}`))
-        .catch((err) => res.json(err));
+      }).then(res.json(data));
     })
     .catch((err) => res.json(err));
 });
 
-class Dish extends Model {}
-
-Dish.init(
-  {
-    name: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    price: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    nonVeg: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-    },
-  },
-  { sequelize }
-);
-
-Restaurant.hasMany(Dish, { foreignKey: { allowNull: false } });
-Dish.belongsTo(Restaurant);
+Restaurant.hasMany(Dish, {
+  foreignKey: { name: "restaurantId", allowNull: false },
+});
+Dish.belongsTo(Restaurant, { foreignKey: "restaurantId" });
 
 const dishDbSync = async () => {
   try {
@@ -133,13 +76,7 @@ app.get("/dishes", function (req, res) {
 });
 
 app.post("/dishes", function (req, res) {
-  const { name, price, nonVeg, restaurantId } = req.body;
-  Dish.create({
-    name: name,
-    price: price,
-    nonVeg: nonVeg,
-    RestaurantId: restaurantId,
-  })
+  Dish.create(req.body)
     .then((data) => res.json(data))
     .catch((err) => res.json(err));
 });
@@ -154,9 +91,7 @@ app.delete("/dishes", function (req, res) {
         where: {
           id: req.body.id,
         },
-      })
-        .then(res.json(data))
-        .catch((err) => res.json(err));
+      }).then(() => res.json(data));
     })
     .catch((err) => res.json(err));
 });
