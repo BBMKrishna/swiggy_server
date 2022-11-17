@@ -14,7 +14,7 @@ User.init(
       allowNull: false,
       validate: {
         notNull: { args: true, msg: "You must enter Phone Number" },
-        len: { args: [11, 11], msg: "Phone Number is invalid" },
+        len: { args: [10, 10], msg: "Phone Number is invalid" },
         isInt: { args: true, msg: "You must enter Phone Number" },
       },
     },
