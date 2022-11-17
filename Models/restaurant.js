@@ -1,7 +1,7 @@
 "use strict";
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
-
+const Dish = require("./dish.js");
 class Restaurant extends Model {}
 
 Restaurant.init(
@@ -30,5 +30,10 @@ const dbsync = async () => {
 };
 
 dbsync();
+
+Restaurant.hasMany(Dish, {
+  foreignKey: { name: "restaurantId", allowNull: false },
+});
+Dish.belongsTo(Restaurant, { foreignKey: "restaurantId" });
 
 module.exports = Restaurant;

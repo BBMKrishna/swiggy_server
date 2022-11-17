@@ -4,7 +4,7 @@ const host = process.env.host;
 const database = process.env.database;
 const password = process.env.password;
 const port = process.env.post;
-const { Sequelize } = require("sequelize");
+const { Sequelize, Model } = require("sequelize");
 //connecting the database
 const sequelize = new Sequelize(database, user, password, {
   host: host,

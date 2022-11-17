@@ -33,11 +33,6 @@ app.delete("/restaurants", function (req, res) {
     .catch((err) => res.json(err));
 });
 
-Restaurant.hasMany(Dish, {
-  foreignKey: { name: "restaurantId", allowNull: false },
-});
-Dish.belongsTo(Restaurant, { foreignKey: "restaurantId" });
-
 app.get("/dishes", function (req, res) {
   Dish.findAll().then((data) => res.json(data));
 });
