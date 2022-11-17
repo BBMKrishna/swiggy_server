@@ -5,29 +5,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const Restaurant = require("./Models/restaurant.js");
 const Dish = require("./Models/dish.js");
-const sequelize = require("./sequelize.js");
-
-const dbsync = async () => {
-  try {
-    await Restaurant.sync({ alter: true });
-  } catch (error) {
-    console.error("Failed to sync", error);
-  }
-};
-
-dbsync();
-
-//testing the db connection
-const dbAuth = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
-};
-
-dbAuth();
 
 // restaurant routes
 app.post("/restaurants", function (req, res) {
@@ -60,16 +37,6 @@ Restaurant.hasMany(Dish, {
   foreignKey: { name: "restaurantId", allowNull: false },
 });
 Dish.belongsTo(Restaurant, { foreignKey: "restaurantId" });
-
-const dishDbSync = async () => {
-  try {
-    await Dish.sync({ alter: true });
-  } catch (error) {
-    console.error("Failed to sync", error);
-  }
-};
-
-dishDbSync();
 
 app.get("/dishes", function (req, res) {
   Dish.findAll().then((data) => res.json(data));

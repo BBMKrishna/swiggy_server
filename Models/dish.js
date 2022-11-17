@@ -22,4 +22,14 @@ Dish.init(
   { sequelize }
 );
 
+const dishDbSync = async () => {
+  try {
+    await Dish.sync({ alter: true });
+  } catch (error) {
+    console.error("Failed to sync", error);
+  }
+};
+
+dishDbSync();
+
 module.exports = Dish;

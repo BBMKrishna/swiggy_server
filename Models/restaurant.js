@@ -21,5 +21,14 @@ Restaurant.init(
   },
   { sequelize }
 );
+const dbsync = async () => {
+  try {
+    await Restaurant.sync({ alter: true });
+  } catch (error) {
+    console.error("Failed to sync", error);
+  }
+};
+
+dbsync();
 
 module.exports = Restaurant;
