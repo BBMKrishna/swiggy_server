@@ -37,7 +37,7 @@ app.get("/dishes", function (req, res) {
 });
 
 app.post("/dishes", function (req, res) {
-  Dish.create(res.body)
+  Dish.create(req.body)
     .then((data) => res.json(data))
     .catch((err) => res.json(err));
 });
@@ -64,7 +64,7 @@ app.get("/users", function (req, res) {
 
 app.post("/signup", function (req, res) {
   const { name, phoneNum, password } = req.body;
-  User.create({ name: name, phoneNum: phoneNum, password: md5(password) })
+  User.create({ name: name, phone: phone, password: md5(password) })
     .then((data) => res.json(data))
     .catch((err) => res.json(err));
 });

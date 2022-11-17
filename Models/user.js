@@ -9,7 +9,7 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    phoneNum: {
+    phone: {
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
