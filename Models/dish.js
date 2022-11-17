@@ -26,7 +26,7 @@ const dishDbSync = async () => {
   try {
     await Dish.sync({ alter: true });
   } catch (error) {
-    console.error("Failed to sync", error);
+    console.error("Failed to sync - Dish", error);
   }
 };
 
