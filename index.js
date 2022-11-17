@@ -87,12 +87,13 @@ app.delete("/dishes", function (req, res) {
     },
   })
     .then((data) => {
-      Dish.destroy({
+      return Dish.destroy({
         where: {
           id: req.body.id,
         },
-      }).then(() => res.json(data));
+      }).then(() => data);
     })
+    .then((data) => res.json(data))
     .catch((err) => res.json(err));
 });
 //express setup at port 3000
