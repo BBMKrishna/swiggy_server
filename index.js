@@ -63,12 +63,22 @@ app.get("/users", function (req, res) {
 });
 
 app.post("/signup", function (req, res) {
-  const { name, phoneNum, password } = req.body;
+  const { name, phone, password } = req.body;
   User.create({ name: name, phone: phone, password: md5(password) })
     .then((data) => res.json(data))
     .catch((err) => res.json(err));
 });
 
+app.post("/login", function (req, res) {
+  const { phone, password } = req.body;
+  User.findOne({ where: { phone: phone } }).then((data) => {
+    if (data.password === md5(password)) {
+      res.json(data);
+    } else {
+      res.status(401).json({ msg: "Auth Failed" });
+    }
+  });
+});
 //express setup at port 3000
 app.listen(3000, function (req, res) {
   console.log("server is running at port 3000");
