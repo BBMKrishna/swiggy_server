@@ -5,6 +5,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const Restaurant = require("./Models/restaurant.js");
 const Dish = require("./Models/dish.js");
 const User = require("./Models/user.js");
+const Order = require("./Models/order.js");
+const Orderitems = require("./Models/orderitems.js");
 const md5 = require("md5");
 // restaurant routes
 app.post("/restaurants", function (req, res) {
@@ -82,6 +84,22 @@ app.post("/login", function (req, res) {
     .catch((err) => {
       res.json(err);
     });
+});
+app.get("/orders", function (req, res) {
+  Order.findAll().then((data) => res.json(data));
+});
+app.post("/orders", function (req, res) {
+  Order.create(req.body)
+    .then((data) => res.json(data))
+    .catch((err) => res.json(err));
+});
+app.get("/orderitems", function (req, res) {
+  Orderitems.findAll().then((data) => res.json(data));
+});
+app.post("/orderitems", function (req, res) {
+  Orderitems.create(req.body)
+    .then((data) => res.json(data))
+    .catch((err) => res.json(err));
 });
 //express setup at port 3000
 app.listen(3000, function (req, res) {
