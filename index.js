@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 const Restaurant = require("./Models/restaurant.js");
 const Dish = require("./Models/dish.js");
 const User = require("./Models/user.js");
@@ -91,16 +90,15 @@ app.get("/orders", function (req, res) {
 
 app.post("/orders", function (req, res) {
   Order.create(req.body)
-    .then((data) => {
-      const orderItems = JSON.parse(req.body.orderItems);
-
-      orderItems.forEach(async (orderItem) => {
+    .then(async (data) => {
+      const orderItems = req.body.orderItems;
+      for (const orderItem of orderItems) {
         await Orderitems.create({
           quantity: orderItem.quantity,
           orderId: data.dataValues.id,
           dishId: orderItem.dishId,
         });
-      });
+      }
       res.json(data);
     })
     .catch((err) => res.json(err));
