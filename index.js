@@ -88,17 +88,21 @@ app.post("/login", function (req, res) {
 app.get("/orders", function (req, res) {
   Order.findAll().then((data) => res.json(data));
 });
+
 app.post("/orders", function (req, res) {
   Order.create(req.body)
-    .then((data) => res.json(data))
-    .catch((err) => res.json(err));
-});
-app.get("/orderitems", function (req, res) {
-  Orderitems.findAll().then((data) => res.json(data));
-});
-app.post("/orderitems", function (req, res) {
-  Orderitems.create(req.body)
-    .then((data) => res.json(data))
+    .then((data) => {
+      const orderItems = JSON.parse(req.body.orderItems);
+
+      orderItems.forEach(async (orderItem) => {
+        await Orderitems.create({
+          quantity: orderItem.quantity,
+          orderId: data.dataValues.id,
+          dishId: orderItem.dishId,
+        });
+      });
+      res.json(data);
+    })
     .catch((err) => res.json(err));
 });
 //express setup at port 3000
