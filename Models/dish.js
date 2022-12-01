@@ -18,6 +18,10 @@ Dish.init(
       type: DataTypes.BOOLEAN,
       allowNull: true,
     },
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   { sequelize }
 );

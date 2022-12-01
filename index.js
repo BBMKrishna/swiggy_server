@@ -7,6 +7,8 @@ const User = require("./Models/user.js");
 const Order = require("./Models/order.js");
 const Orderitems = require("./Models/orderitems.js");
 const md5 = require("md5");
+var cors = require("cors");
+app.use(cors());
 // restaurant routes
 app.post("/restaurants", function (req, res) {
   Restaurant.create(req.body)
@@ -104,6 +106,6 @@ app.post("/orders", function (req, res) {
     .catch((err) => res.json(err));
 });
 //express setup at port 3000
-app.listen(3000, function (req, res) {
-  console.log("server is running at port 3000");
+app.listen(3080, function (req, res) {
+  console.log("server is running at port 3080");
 });
