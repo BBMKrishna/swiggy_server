@@ -39,6 +39,14 @@ app.get("/dishes", function (req, res) {
   Dish.findAll().then((data) => res.json(data));
 });
 
+app.get("/dishes/:restaurantId", function (req, res) {
+  Dish.findAll({
+    where: {
+      restaurantId: parseInt(req.params.restaurantId),
+    },
+  }).then((data) => res.json(data));
+});
+
 app.post("/dishes", function (req, res) {
   Dish.create(req.body)
     .then((data) => res.json(data))
