@@ -39,7 +39,8 @@ app.get("/dishes", function (req, res) {
   Dish.findAll().then((data) => res.json(data));
 });
 
-app.get("/dishes/:restaurantId", function (req, res) {
+app.get("/restaurants/:restaurantId/dishes", function (req, res) {
+  
   Dish.findAll({
     where: {
       restaurantId: parseInt(req.params.restaurantId),
