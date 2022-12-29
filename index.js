@@ -112,7 +112,7 @@ app.get("/orders/:orderId/orderitems", function (req, res) {
 
 app.post("/orders", function (req, res) {
   const userId = { userId: 1 };
-  Order.create(userId) //req.body\
+  Order.create(userId)
     .then(async (data) => {
       const orderItems = req.body.orderItems;
       for (const orderItem of orderItems) {
