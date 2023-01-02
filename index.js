@@ -40,7 +40,6 @@ app.get("/dishes", function (req, res) {
 });
 
 app.get("/restaurants/:restaurantId/dishes", function (req, res) {
-  
   Dish.findAll({
     where: {
       restaurantId: parseInt(req.params.restaurantId),
@@ -59,12 +58,13 @@ app.delete("/dishes", function (req, res) {
       id: req.body.id,
     },
   })
-    .then((data) => {
-      return Dish.destroy({
+    .then(async (data) => {
+      await Dish.destroy({
         where: {
           id: req.body.id,
         },
-      }).then(() => data);
+      });
+      return data;
     })
     .then((data) => res.json(data))
     .catch((err) => res.json(err));
@@ -99,15 +99,28 @@ app.get("/orders", function (req, res) {
   Order.findAll().then((data) => res.json(data));
 });
 
+app.get("/orderitems", function (req, res) {
+  Orderitems.findAll().then((data) => res.json(data));
+});
+app.get("/orders/:orderId/orderitems", function (req, res) {
+  Orderitems.findAll({
+    where: {
+      orderId: parseInt(req.params.orderId),
+    },
+  }).then((data) => res.json(data));
+});
+
 app.post("/orders", function (req, res) {
-  Order.create(req.body)
+  const userId = { userId: 1 };
+  Order.create(userId)
     .then(async (data) => {
       const orderItems = req.body.orderItems;
       for (const orderItem of orderItems) {
         await Orderitems.create({
           quantity: orderItem.quantity,
           orderId: data.dataValues.id,
-          dishId: orderItem.dishId,
+          dishId: orderItem.id,
+          price: orderItem.price,
         });
       }
       res.json(data);
