@@ -24,15 +24,13 @@ app.post("/signup", async function (req, res) {
         const name = req.body.name;
         const phone = req.body.phone;
         const password = await bcrypt.hash(req.body.password, 10);
-        const user = { name: name, phone: phone, password: password };
-        User.create({ name: name, phone: phone, password: password })
+        await User.create({ name: name, phone: phone, password: password })
           .then((data) => res.json(data))
           .catch((err) => res.status(500).send(err));
-      } else {
-        res.status(500).json({
-          msg: "User Already Exist, try to login if you are a Old user",
-        });
       }
+      res.status(500).json({
+        msg: "User Already Exist, Try to login if you are a Old user",
+      });
     });
   } catch {
     res.status(500).json({ msg: "something went wrong!" });
@@ -46,19 +44,17 @@ app.post("/login", async function (req, res) {
         res
           .status(500)
           .send({ msg: "user doesnot exists, create a new account" });
-      } else {
-        try {
-          const { password } = req.body;
-          if (await bcrypt.compare(password, data.password)) {
-            const user = { id: data.id };
-            const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
-            res.json({ accessToken: accessToken });
-          } else {
-            res.json({ msg: "Auth Failed" });
-          }
-        } catch {
-          res.status(500).json({ msg: "something went wrong" });
+      }
+      try {
+        const { password } = req.body;
+        if (await bcrypt.compare(password, data.password)) {
+          const user = { id: data.id };
+          const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+          res.json({ accessToken: accessToken });
         }
+        res.json({ msg: "Auth Failed" });
+      } catch {
+        res.status(500).json({ msg: "something went wrong" });
       }
     }
   );
