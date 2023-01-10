@@ -51,8 +51,9 @@ app.post("/login", async function (req, res) {
           const user = { id: data.id };
           const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
           res.json({ accessToken: accessToken });
+        } else {
+          res.json({ msg: "Auth Failed" });
         }
-        res.json({ msg: "Auth Failed" });
       } catch {
         res.status(500).json({ msg: "something went wrong" });
       }
