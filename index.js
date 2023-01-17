@@ -15,50 +15,51 @@ app.use(cors());
 
 app.post("/signup", async function (req, res) {
   try {
-    await User.findOne({
+    const data = await User.findOne({
       where: {
         [Op.or]: [{ name: req.body.name }, { phone: req.body.phone }],
       },
-    }).then(async (data) => {
-      if (data === null) {
-        const name = req.body.name;
-        const phone = req.body.phone;
-        const password = await bcrypt.hash(req.body.password, 10);
-        await User.create({ name: name, phone: phone, password: password })
-          .then((data) => res.json(data))
-          .catch((err) => res.status(500).send(err));
-      }
+    });
+    if (data === null) {
+      const name = req.body.name;
+      const phone = req.body.phone;
+      const password = await bcrypt.hash(req.body.password, 10);
+      const newUser = await User.create({
+        name: name,
+        phone: phone,
+        password: password,
+      });
+      return res.json(newUser);
+    } else {
       res.status(500).json({
         msg: "User Already Exist, Try to login if you are a Old user",
       });
-    });
+    }
   } catch {
     res.status(500).json({ msg: "something went wrong!" });
   }
 });
 
 app.post("/login", async function (req, res) {
-  await User.findOne({ where: { phone: req.body.phone } }).then(
-    async (data) => {
-      if (data === null) {
-        res
-          .status(500)
-          .send({ msg: "user doesnot exists, create a new account" });
-      }
-      try {
-        const { password } = req.body;
-        if (await bcrypt.compare(password, data.password)) {
-          const user = { id: data.id };
-          const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
-          res.json({ accessToken: accessToken });
-        } else {
-          res.json({ msg: "Auth Failed" });
-        }
-      } catch {
-        res.status(500).json({ msg: "something went wrong" });
+  try {
+    const data = await User.findOne({ where: { phone: req.body.phone } });
+    if (data === null) {
+      res
+        .status(500)
+        .send({ msg: "user doesnot exists, create a new account" });
+    } else {
+      const { password } = req.body;
+      if (await bcrypt.compare(password, data.password)) {
+        const user = { id: data.id };
+        const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
+        res.json({ accessToken: accessToken });
+      } else {
+        res.json({ msg: "Auth Failed" });
       }
     }
-  );
+  } catch {
+    res.status(500).json({ msg: "something went wrong" });
+  }
 });
 
 function authenticateToken(req, res, next) {
