@@ -1,63 +1,64 @@
 require("dotenv").config({ path: ".env" });
-const bcrypt = require("bcrypt");
+const argon2 = require("argon2");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const app = express();
 app.use(express.json());
-const Restaurant = require("./Models/restaurant.js");
-const Dish = require("./Models/dish.js");
-const User = require("./Models/user.js");
-const Order = require("./Models/order.js");
-const Orderitems = require("./Models/orderitems.js");
-const { Op } = require("sequelize");
 var cors = require("cors");
 app.use(cors());
+const prisma = require('./prisma/client');
 
 app.post("/signup", async function (req, res) {
   try {
-    const data = await User.findOne({
+    const existingUser = await prisma.user.findFirst({
       where: {
-        [Op.or]: [{ name: req.body.name }, { phone: req.body.phone }],
-      },
+        OR: [
+          { name: req.body.name },
+          { phone: req.body.phone }
+        ]
+      }
     });
-    if (data === null) {
-      const name = req.body.name;
-      const phone = req.body.phone;
-      const password = await bcrypt.hash(req.body.password, 10);
-      const newUser = await User.create({
-        name: name,
-        phone: phone,
-        password: password,
+
+    if (!existingUser) {
+      const password = await argon2.hash(req.body.password);
+      const newUser = await prisma.user.create({
+        data: {
+          name: req.body.name,
+          phone: req.body.phone,
+          password: password,
+        },
       });
       return res.json(newUser);
     } else {
       res.status(500).json({
-        msg: "User Already Exist, Try to login if you are a Old user",
+        msg: "User Already Exists, Try to login if you are an Old user",
       });
     }
-  } catch {
+  } catch (error) {
     res.status(500).json({ msg: "something went wrong!" });
   }
 });
 
 app.post("/login", async function (req, res) {
   try {
-    const data = await User.findOne({ where: { phone: req.body.phone } });
-    if (data === null) {
-      res
-        .status(500)
-        .send({ msg: "user doesnot exists, create a new account" });
-    } else {
-      const { password } = req.body;
-      if (await bcrypt.compare(password, data.password)) {
-        const user = { id: data.id };
-        const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
-        res.json({ accessToken: accessToken });
-      } else {
-        res.json({ msg: "Auth Failed" });
-      }
+    const user = await prisma.user.findUnique({
+      where: { phone: req.body.phone }
+    });
+
+    if (!user) {
+      return res.status(500).send({ msg: "user does not exist, create a new account" });
     }
-  } catch {
+
+    if (await argon2.verify(user.password, req.body.password)) {
+      const accessToken = jwt.sign({ id: user.id }, process.env.ACCESS_TOKEN_SECRET);
+      res.json({
+        accessToken: accessToken,
+        userId: user.id
+      });
+    } else {
+      res.json({ msg: "Auth Failed" });
+    }
+  } catch (error) {
     res.status(500).json({ msg: "something went wrong" });
   }
 });
@@ -68,115 +69,188 @@ function authenticateToken(req, res, next) {
 
   if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) return res.sendStatus(403);
-    req.user = user;
+    req.user = decoded;
+    req.userId = decoded.id;
     next();
   });
 }
 
 app.use(authenticateToken);
+
 // restaurant routes
-app.post("/restaurants", function (req, res) {
-  Restaurant.create(req.body)
-    .then((data) => res.json(data))
-    .catch((error) => console.error("Failed to create a record", error));
+app.post("/restaurants", async function (req, res) {
+  try {
+    const restaurant = await prisma.restaurant.create({
+      data: req.body
+    });
+    res.json(restaurant);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create restaurant" });
+  }
 });
 
-app.get("/restaurants", function (req, res) {
-  Restaurant.findAll().then((restaurants) => res.json(restaurants));
-});
-app.delete("/restaurants", function (req, res) {
-  Restaurant.findOne({
-    where: {
-      id: req.body.id,
-    },
-  })
-    .then((data) => {
-      Restaurant.destroy({
-        where: {
-          id: req.body.id,
-        },
-      }).then(res.json(data));
-    })
-    .catch((err) => res.json(err));
+app.get("/restaurants", async function (req, res) {
+  try {
+    const restaurants = await prisma.restaurant.findMany();
+    res.json(restaurants);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch restaurants" });
+  }
 });
 
-app.get("/dishes", function (req, res) {
-  Dish.findAll().then((data) => res.json(data));
+app.delete("/restaurants", async function (req, res) {
+  try {
+    const restaurant = await prisma.restaurant.delete({
+      where: { id: req.body.id }
+    });
+    res.json(restaurant);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete restaurant" });
+  }
 });
 
-app.get("/restaurants/:restaurantId/dishes", function (req, res) {
-  Dish.findAll({
-    where: {
-      restaurantId: parseInt(req.params.restaurantId),
-    },
-  }).then((data) => res.json(data));
+app.get("/dishes", async function (req, res) {
+  try {
+    const dishes = await prisma.dish.findMany();
+    res.json(dishes);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch dishes" });
+  }
 });
 
-app.post("/dishes", function (req, res) {
-  Dish.create(req.body)
-    .then((data) => res.json(data))
-    .catch((err) => res.json(err));
-});
-app.delete("/dishes", function (req, res) {
-  Dish.findOne({
-    where: {
-      id: req.body.id,
-    },
-  })
-    .then(async (data) => {
-      await Dish.destroy({
-        where: {
-          id: req.body.id,
-        },
-      });
-      return data;
-    })
-    .then((data) => res.json(data))
-    .catch((err) => res.json(err));
-});
-
-app.get("/users", function (req, res) {
-  User.findAll({ where: { id: req.user.id } }).then((data) => {
-    res.json(data);
-  });
-});
-
-app.get("/orders", function (req, res) {
-  Order.findAll({ where: { userId: req.user.id } }).then((data) =>
-    res.json(data)
-  );
-});
-
-app.get("/orderitems", function (req, res) {
-  Orderitems.findAll().then((data) => res.json(data));
-});
-app.get("/orders/:orderId/orderitems", function (req, res) {
-  Orderitems.findAll({
-    where: {
-      orderId: parseInt(req.params.orderId),
-    },
-  }).then((data) => res.json(data));
-});
-
-app.post("/orders", function (req, res) {
-  Order.create({ userId: req.user.id })
-    .then(async (data) => {
-      const orderItems = req.body.orderItems;
-      for (const orderItem of orderItems) {
-        await Orderitems.create({
-          quantity: orderItem.quantity,
-          orderId: data.dataValues.id,
-          dishId: orderItem.id,
-          price: orderItem.price,
-        });
+app.get("/restaurants/:restaurantId/dishes", async function (req, res) {
+  try {
+    const dishes = await prisma.dish.findMany({
+      where: {
+        restaurantId: parseInt(req.params.restaurantId)
       }
-      res.json(data);
-    })
-    .catch((err) => res.json(err));
+    });
+    res.json(dishes);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch restaurant dishes" });
+  }
 });
-//express setup at port 3000
-app.listen(3080, function (req, res) {
+
+app.post("/dishes", async function (req, res) {
+  try {
+    const dish = await prisma.dish.create({
+      data: req.body
+    });
+    res.json(dish);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to create dish" });
+  }
+});
+
+app.delete("/dishes", async function (req, res) {
+  try {
+    const dish = await prisma.dish.delete({
+      where: { id: req.body.id }
+    });
+    res.json(dish);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete dish" });
+  }
+});
+
+app.get("/users", async function (req, res) {
+  try {
+    const users = await prisma.user.findMany({
+      where: { id: req.user.id }
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch users" });
+  }
+});
+
+app.get("/orders", async function (req, res) {
+  try {
+    console.log("User ID from token:", req.userId);
+
+    const orders = await prisma.order.findMany({
+      where: {
+        userId: req.userId
+      },
+      include: {
+        orderItems: {
+          include: {
+            dish: true
+          }
+        }
+      }
+    });
+
+    console.log("Found orders:", orders);
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
+app.get("/orderitems", async function (req, res) {
+  try {
+    const orderItems = await prisma.orderItems.findMany();
+    res.json(orderItems);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch order items" });
+  }
+});
+
+app.get("/orders/:orderId/orderitems", async function (req, res) {
+  try {
+    const orderItems = await prisma.orderItems.findMany({
+      where: {
+        orderId: parseInt(req.params.orderId)
+      }
+    });
+    res.json(orderItems);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch order items" });
+  }
+});
+
+app.post("/orders", async function (req, res) {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(400).json({ error: "User not authenticated" });
+    }
+
+    const orderItems = req.body.orderItems;
+    if (!Array.isArray(orderItems) || orderItems.length === 0) {
+      return res.status(400).json({ error: "Invalid order items" });
+    }
+
+    const order = await prisma.order.create({
+      data: {
+        userId: req.user.id,
+        orderItems: {
+          create: orderItems.map(item => ({
+            quantity: item.quantity,
+            price: item.price,
+            dishId: item.id
+          }))
+        }
+      },
+      include: {
+        orderItems: true
+      }
+    });
+
+    res.json(order);
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ error: "Failed to create order" });
+  }
+});
+
+app.listen(3080, function () {
   console.log("server is running at port 3080");
+});
+
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
 });
