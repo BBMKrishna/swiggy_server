@@ -168,9 +168,7 @@ app.get("/users", async function (req, res) {
 
 app.get("/orders", async function (req, res) {
   try {
-    console.log("User ID from token:", req.userId);
-
-    const orders = await prisma.order.findMany({
+      const orders = await prisma.order.findMany({
       where: {
         userId: req.userId
       },
@@ -183,7 +181,6 @@ app.get("/orders", async function (req, res) {
       }
     });
 
-    console.log("Found orders:", orders);
     res.json(orders);
   } catch (error) {
     console.error("Error fetching orders:", error);
