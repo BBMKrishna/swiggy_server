@@ -4,7 +4,9 @@
   "description": "Backend for the Swiggy Project",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "build": "npx prisma generate",
+    "migrate": "npx prisma migrate deploy"
   },
   "author": "",
   "license": "ISC",
