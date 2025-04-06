@@ -245,7 +245,7 @@ app.post("/orders", async function (req, res) {
 });
 
 app.listen(3080, function () {
-  console.log("server is running at port 3080");
+  console.log("server is running at port 3080 and ready to accept requests, let's rock!");
 });
 
 process.on('beforeExit', async () => {
